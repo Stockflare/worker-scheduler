@@ -1,4 +1,4 @@
-worker_schedule:
+worker_scheduler:
   build: .
   command: node worker.js
   env_file:
