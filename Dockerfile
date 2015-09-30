@@ -27,6 +27,9 @@ RUN sudo apt-get install -y dnsutils
 RUN sudo apt-get install -y python-pip
 RUN sudo pip install awscli
 
+# Install logging boradcaster
+COPY bin/broadcast /usr/bin/broadcast
+
 # Install NVM and Node
 RUN /bin/bash -l -c "curl https://raw.githubusercontent.com/creationix/nvm/v0.17.3/install.sh | bash"
 RUN /bin/bash -l -c "echo 'source ~/.nvm/nvm.sh' >> ~/.profile"
