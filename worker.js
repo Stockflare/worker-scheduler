@@ -40,7 +40,6 @@ var getAllDBJobs = function(fn) {
     Limit: 1000
   }, function(err, data){
     var return_data = [];
-
     if (!_.isNull(data) && !_.isUndefined(data.Count) && data.Count > 0) {
 
       _.each(data.Items, function(item, index, items){
@@ -55,7 +54,7 @@ var getAllDBJobs = function(fn) {
         r.last_run =item.last_run.S;
 
         if (_.isUndefined(r.task.StartTime)) {
-          r.task.StartTime = moment().toISOString();
+          r.task.StartTime = moment().subtract(1, 'minute').toISOString();
         }
 
         if (_.isUndefined(r.task.EndTime)) {
@@ -77,10 +76,15 @@ var getAllDBJobs = function(fn) {
         // only include the job if it should be Running
         if (moment(r.task.StartTime).isBefore(moment()) && moment(r.task.EndTime).isAfter(moment())) {
           return_data.push(r);
+        } else {
         }
 
       }, this);
 
+    } else {
+      // console.log('COUNT FAILED')
+      // console.log('err, data');
+      // console.log(err, data);
     }
     fn(err, return_data);
   });
@@ -102,8 +106,6 @@ var executeJob = function(db_job) {
   }
 
   ecs.runTask(params, function(err, data) {
-    console.log('err, data');
-    console.log(err, data);
     if (err) console.log(err, err.stack); // an error occurred
     else     console.log(data);           // successful response
   });
@@ -124,7 +126,7 @@ var executeJob = function(db_job) {
   });
 };
 
-var setUpJobs = function() {
+var setUpJobs = function(callback) {
   getAllDBJobs(function(err, db_jobs){
     if (db_jobs.length > 0 ) {
       // deal with any new or updated jobs
@@ -168,6 +170,8 @@ var setUpJobs = function() {
 
         }
       });
+    } else {
+      console.log('NO DB JOBS FOUND');
     }
 
     // Now deal with any jobs that have been deleted or are no longer included
@@ -186,18 +190,19 @@ var setUpJobs = function() {
       }
     }, this);
   });
+  callback();
 };
 
 
-
-setUpJobs();
 
 
 
 setInterval(function() {
   console.log('Checking for Job Changes');
-  setUpJobs();
-  console.log(jobs);
-}, 60000);
+  setUpJobs(function(){
+    // console.log('jobs');
+    // console.log(jobs);
+  });
+}, 10000);
 
-console.log("Exit");
+console.log("Interval is running");
